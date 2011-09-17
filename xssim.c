@@ -8,8 +8,6 @@
  * version 2.
  */
 
-#include "xssim.h"
-
 #include <gst/gst.h>
 #include <gst/base/gstcollectpads.h>
 
@@ -58,13 +56,6 @@ struct gst_xssim {
 struct gst_xssim_class {
 	GstElementClass parent_class;
 };
-
-void ssim_get_results(struct gst_xssim *self, double *avg, double *min, double *max)
-{
-	*avg = self->avg;
-	*min = self->min;
-	*max = self->max;
-}
 
 static void ssim_4x4x2_core(const uint8_t *pix1, int stride1,
 		const uint8_t *pix2, int stride2,
@@ -328,7 +319,7 @@ static void class_init(void *g_class, void *class_data)
 			g_cclosure_marshal_VOID__DOUBLE, G_TYPE_NONE, 1, G_TYPE_DOUBLE);
 }
 
-GType gst_xssim_get_type(void)
+static GType get_type(void)
 {
 	static GType type;
 
@@ -351,7 +342,7 @@ GType gst_xssim_get_type(void)
 
 static gboolean plugin_init(GstPlugin *plugin)
 {
-	if (!gst_element_register(plugin, "xssim", GST_RANK_NONE, GST_XSSIM_TYPE))
+	if (!gst_element_register(plugin, "xssim", GST_RANK_NONE, get_type()))
 		return FALSE;
 
 	return TRUE;
