@@ -39,6 +39,8 @@ GST_STATIC_PAD_TEMPLATE("sink%d", GST_PAD_SINK, GST_PAD_SOMETIMES, GST_STATIC_CA
 
 static GstElementClass *parent_class;
 
+static guint got_results_signal;
+
 struct gst_xssim {
 	GstElement parent;
 
@@ -152,6 +154,7 @@ static GstFlowReturn collected(GstCollectPads *pads, void *user_data)
 	inbuf1 = gst_collect_pads_pop(pads, self->sink1);
 	if (!inbuf0 || !inbuf1) {
 		gst_pad_push_event(self->srcpad, gst_event_new_eos());
+		g_signal_emit(self, got_results_signal, 0, self->avg);
 		ret = GST_FLOW_UNEXPECTED;
 		goto leave;
 	}
@@ -319,6 +322,10 @@ static void class_init(void *g_class, void *class_data)
 			"Felipe Contreras <felipe.contreras@gmail.com>");
 
 	gstelement_class->change_state = gst_ssim_change_state;
+
+	got_results_signal = g_signal_new("got_results", G_TYPE_FROM_CLASS(g_class),
+			G_SIGNAL_RUN_LAST, 0, NULL, NULL,
+			g_cclosure_marshal_VOID__DOUBLE, G_TYPE_NONE, 1, G_TYPE_DOUBLE);
 }
 
 GType gst_xssim_get_type(void)
