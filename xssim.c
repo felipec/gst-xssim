@@ -39,6 +39,9 @@ static GstElementClass *parent_class;
 
 static guint got_results_signal;
 
+#define swap(type, a, b) \
+	do { type __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
+
 struct gst_xssim {
 	GstElement parent;
 
@@ -104,8 +107,6 @@ static float ssim_end4(int sum0[5][4], int sum1[5][4], int width)
 	return ssim;
 }
 
-#define XCHG(type,a,b) do { type t = a; a = b; b = t; } while(0)
-
 static float x264_pixel_ssim_wxh(uint8_t *pix1, int stride1,
 		uint8_t *pix2, int stride2,
 		int width, int height, void *buf, int *cnt)
@@ -118,7 +119,7 @@ static float x264_pixel_ssim_wxh(uint8_t *pix1, int stride1,
 	height >>= 2;
 	for (int y = 1; y < height; y++) {
 		for(; z <= y; z++) {
-			XCHG(void *, sum0, sum1);
+			swap(void *, sum0, sum1);
 			for (int x = 0; x < width; x += 2)
 				ssim_4x4x2_core(&pix1[4 * (x + z * stride1)], stride1,
 						&pix2[4 * (x + z * stride2)], stride2, &sum0[x]);

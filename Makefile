@@ -3,7 +3,7 @@ CC := $(CROSS_COMPILE)gcc
 CFLAGS := -O2 -ggdb -Wall -Wextra -Wno-unused-parameter -Wmissing-prototypes -ansi
 LDFLAGS := -Wl,--no-undefined -Wl,--as-needed
 
-override CFLAGS += -std=c99 -D_GNU_SOURCE -DGST_DISABLE_DEPRECATED
+override CFLAGS += -std=c99 -DGST_DISABLE_DEPRECATED
 
 GST_CFLAGS := $(shell pkg-config --cflags gstreamer-0.10 gstreamer-base-0.10)
 GST_LIBS := $(shell pkg-config --libs gstreamer-0.10 gstreamer-base-0.10)
