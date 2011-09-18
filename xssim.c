@@ -42,6 +42,35 @@ static guint got_results_signal;
 #define swap(type, a, b) \
 	do { type __tmp = (a); (a) = (b); (b) = __tmp; } while (0)
 
+static void
+g_cclosure_marshal_VOID__DOUBLE_DOUBLE_DOUBLE(GClosure *closure,
+		GValue *return_value,
+		unsigned n_param_values,
+		const GValue *param_values,
+		void *invocation_hint,
+		void *marshal_data)
+{
+	void (*callback) ();
+	GCClosure *cc = (GCClosure*) closure;
+	void *data1, *data2;
+
+	g_return_if_fail(n_param_values == 4);
+
+	data1 = g_value_peek_pointer(param_values + 0);
+	data2 = closure->data;
+
+	if (G_CCLOSURE_SWAP_DATA(closure))
+		swap(void *, data1, data2);
+
+	callback = marshal_data ? marshal_data : cc->callback;
+
+	callback(data1,
+			g_value_get_double(param_values + 1),
+			g_value_get_double(param_values + 2),
+			g_value_get_double(param_values + 3),
+			data2);
+}
+
 struct gst_xssim {
 	GstElement parent;
 
@@ -146,7 +175,7 @@ static GstFlowReturn collected(GstCollectPads *pads, void *user_data)
 	inbuf1 = gst_collect_pads_pop(pads, self->sink1);
 	if (!inbuf0 || !inbuf1) {
 		gst_pad_push_event(self->srcpad, gst_event_new_eos());
-		g_signal_emit(self, got_results_signal, 0, self->avg);
+		g_signal_emit(self, got_results_signal, 0, self->avg, self->min, self->max);
 		ret = GST_FLOW_UNEXPECTED;
 		goto leave;
 	}
@@ -317,7 +346,8 @@ static void class_init(void *g_class, void *class_data)
 
 	got_results_signal = g_signal_new("got_results", G_TYPE_FROM_CLASS(g_class),
 			G_SIGNAL_RUN_LAST, 0, NULL, NULL,
-			g_cclosure_marshal_VOID__DOUBLE, G_TYPE_NONE, 1, G_TYPE_DOUBLE);
+			g_cclosure_marshal_VOID__DOUBLE_DOUBLE_DOUBLE, G_TYPE_NONE, 3,
+			G_TYPE_DOUBLE, G_TYPE_DOUBLE, G_TYPE_DOUBLE);
 }
 
 static GType get_type(void)
